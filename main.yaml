@@ -1,0 +1,30 @@
+- name: Mirror DU release payload and operators
+  hosts: localhost
+  any_errors_fatal: true
+  vars:
+    operator_index: "quay.io/prega/redhat-operator-index@sha256:a955d1c6af0541873cf564a963d195566c4550a3b7c92245a32763e9c70a8333"
+    auth_file: "config.json"
+    wanted_operators:
+      - ptp-operator
+      - sriov-network-operator
+      - local-storage-operator
+  gather_facts: true
+  tasks:
+    - name: Get available operators
+      ansible.utils.cli_parse:
+        command: oc-mirror list operators --catalog {{ operator_index }}
+        parser:
+          name: ansible.utils.ttp
+          template_path: ttp/oc-mirror.ttp
+        set_fact: operators
+
+    - name: Get versions
+      command: oc-mirror list operators --catalog {{ operator_index }} --package {{ item.name }} --channel {{ item.channel }}
+      register: versions
+      loop: "{{ operators[0][0].table_data }}"
+      when: item.name in wanted_operators
+
+    - name: Template ImageSetConfig
+      template:
+        src: imagesetconfiguration.yaml.j2
+        dest: imagesetconfiguration.yaml

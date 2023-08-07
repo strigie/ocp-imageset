@@ -1,0 +1,16 @@
+apiVersion: mirror.openshift.io/v1alpha2
+kind: ImageSetConfiguration
+mirror:
+  operators:
+    - catalog: {{ operator_index }}
+      full: false
+      packages:
+{% for operator in versions.results %}
+{% if operator.item.name in wanted_operators %}
+        - name: '{{ operator.item.name }}'
+          channels:
+            - name: '{{ operator.item.channel }}'
+              minVersion: '{{ operator.stdout_lines[1] }}'
+              maxVersion: '{{ operator.stdout_lines[1] }}'
+{% endif %}
+{% endfor %}

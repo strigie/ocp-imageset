@@ -1,0 +1,3 @@
+<group name="table_data" method="table">
+{{ name | WORD }}  {{ display | PHRASE }}  {{ channel | WORD }}
+</group>
